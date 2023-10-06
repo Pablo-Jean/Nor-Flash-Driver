@@ -1,5 +1,5 @@
 /*
- * norDefs.h
+ * nor_ids.h
  *
  *  Created on: 4 de out de 2023
  *      Author: Pablo Jean
@@ -9,8 +9,8 @@
  *      Udemy:
  */
 
-#ifndef W25QXX_W25QXXIDS_H_
-#define W25QXX_W25QXXIDS_H_
+#ifndef NOR_IDS_H_
+#define NOR_IDS_H_
 
 typedef enum{
 	MANUF_MXIC,
@@ -37,4 +37,4 @@ typedef enum{
 
 }nor_model_e;
 
-#endif /* W25QXX_W25QXXIDS_H_ */
+#endif /* NOR_IDS_H_ */
