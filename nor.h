@@ -114,12 +114,13 @@ typedef struct{
  */
 
 nor_err_e NOR_Init(nor_t *nor);
+nor_err_e NOR_Init_wo_ID(nor_t *nor);
 
 nor_err_e NOR_EnterPowerDown(nor_t *nor);
 nor_err_e NOR_ExitPowerDown(nor_t *nor);
 
 nor_err_e NOR_EraseChip(nor_t *nor);
-nor_err_e NOR_EraseAddress(nor_t *nor, uint32_t Address);
+nor_err_e NOR_EraseAddress(nor_t *nor, uint32_t Address, nor_erase_method_e method);
 nor_err_e NOR_EraseSector(nor_t *nor, uint32_t SectorAddr);
 nor_err_e NOR_EraseBlock(nor_t *nor, uint32_t BlockAddr);
 
@@ -133,14 +134,14 @@ nor_err_e NOR_IsEmptyPage(nor_t *nor, uint32_t PageAddr, uint32_t Offset, uint32
 nor_err_e NOR_IsEmptySector(nor_t *nor, uint32_t SectorAddr, uint32_t Offset, uint32_t NumBytesToCheck);
 nor_err_e NOR_IsEmptyBlock(nor_t *nor, uint32_t BlockAddr, uint32_t Offset, uint32_t NumBytesToCheck);
 
-nor_err_e NOR_WriteByte(nor_t *nor, uint8_t pBuffer, uint32_t BytesAddr);
+nor_err_e NOR_WriteBytes(nor_t *nor, uint8_t *pBuffer, uint32_t WriteAddr, uint32_t NumBytesToWrite);
 nor_err_e NOR_WritePage(nor_t *nor, uint8_t *pBuffer, uint32_t PageAddr, uint32_t Offset, uint32_t NumBytesToWrite);
-nor_err_e NOR_WriteSector(nor_t *nor, uint8_t *pBuffer, uint32_t Sector_Address, uint32_t Offset, uint32_t NumBytesToWrite);
-nor_err_e NOR_WriteBlock(nor_t *nor, uint8_t *pBuffer, uint32_t Block_Address, uint32_t Offset, uint32_t NumBytesToWrite);
+nor_err_e NOR_WriteSector(nor_t *nor, uint8_t *pBuffer, uint32_t SectorAddr, uint32_t Offset, uint32_t NumBytesToWrite);
+nor_err_e NOR_WriteBlock(nor_t *nor, uint8_t *pBuffer, uint32_t BlockAddr, uint32_t Offset, uint32_t NumBytesToWrite);
 
 nor_err_e NOR_ReadBytes(nor_t *nor, uint8_t *pBuffer, uint32_t ReadAddr, uint32_t NumByteToRead);
-nor_err_e NOR_ReadPage(nor_t *nor, uint8_t *pBuffer, uint32_t Page_Addr, uint32_t Offset, uint32_t NumByteToRead);
-nor_err_e NOR_ReadSector(nor_t *nor, uint8_t *pBuffer, uint32_t Sector_Addr, uint32_t Offset, uint32_t NumByteToRead);
+nor_err_e NOR_ReadPage(nor_t *nor, uint8_t *pBuffer, uint32_t PageAddr, uint32_t Offset, uint32_t NumByteToRead);
+nor_err_e NOR_ReadSector(nor_t *nor, uint8_t *pBuffer, uint32_t SectorAddr, uint32_t Offset, uint32_t NumByteToRead);
 nor_err_e NOR_ReadBlock(nor_t *nor, uint8_t *pBuffer, uint32_t BlockAddr, uint32_t Offset, uint32_t NumByteToRead);
 
 #endif /* FLASH_NOR_NOR_H_ */
