@@ -124,11 +124,11 @@ nor_err_e NOR_EraseAddress(nor_t *nor, uint32_t Address, nor_erase_method_e meth
 nor_err_e NOR_EraseSector(nor_t *nor, uint32_t SectorAddr);
 nor_err_e NOR_EraseBlock(nor_t *nor, uint32_t BlockAddr);
 
-nor_err_e NOR_PageToSector(nor_t *nor, uint32_t PageAddr, uint32_t *SectorAddr);
-nor_err_e NOR_PageToBlock(nor_t *nor, uint32_t PageAddr, uint32_t *BlockAddr);
-nor_err_e NOR_SectorToBlock(nor_t *nor, uint32_t SectorAddr, uint32_t *BlockAddr);
-nor_err_e NOR_SectorToPage(nor_t *nor, uint32_t SectorAddr, uint32_t *PageAddr);
-nor_err_e NOR_BlockToPage(nor_t *nor, uint32_t BlockAddr, uint32_t *PageAddr);
+uint32_t NOR_PageToSector(nor_t *nor, uint32_t PageAddr);
+uint32_t NOR_PageToBlock(nor_t *nor, uint32_t PageAddr);
+uint32_t NOR_SectorToBlock(nor_t *nor, uint32_t SectorAddr);
+uint32_t NOR_SectorToPage(nor_t *nor, uint32_t SectorAddr);
+uint32_t NOR_BlockToPage(nor_t *nor, uint32_t BlockAddr);
 
 nor_err_e NOR_IsEmptyPage(nor_t *nor, uint32_t PageAddr, uint32_t Offset, uint32_t NumBytesToCheck);
 nor_err_e NOR_IsEmptySector(nor_t *nor, uint32_t SectorAddr, uint32_t Offset, uint32_t NumBytesToCheck);

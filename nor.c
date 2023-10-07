@@ -64,7 +64,7 @@ void _nor_spi_rx(nor_t *nor, uint8_t *rxBuf, uint32_t size){
 void _nor_delay_us(nor_t *nor, uint32_t us){
 	nor->config.DelayUs(us);
 }
-//###################################################################################################################
+
 uint32_t _nor_ReadID(nor_t *nor)
 {
 	uint8_t JedecIdCmd = NOR_JEDEC_ID;
@@ -77,7 +77,7 @@ uint32_t _nor_ReadID(nor_t *nor)
 
 	return ID;
 }
-//###################################################################################################################
+
 uint64_t _nor_ReadUniqID(nor_t *nor)
 {
 	uint8_t UniqueIdCmd = NOR_UNIQUE_ID;
@@ -93,7 +93,7 @@ uint64_t _nor_ReadUniqID(nor_t *nor)
 
 	return UniqueId;
 }
-//###################################################################################################################
+
 void _nor_WriteEnable(nor_t *nor)
 {
 	uint8_t WriteEnCmd = NOR_CMD_WRITE_EN;
@@ -103,7 +103,7 @@ void _nor_WriteEnable(nor_t *nor)
 	_nor_cs_deassert(nor);
 	// TODO Check if a delay was needed here
 }
-//###################################################################################################################
+
 void _nor_WriteDisable(nor_t *nor)
 {
 	uint8_t WriteDisCmd = NOR_CMD_WRITE_DIS;
@@ -112,7 +112,7 @@ void _nor_WriteDisable(nor_t *nor)
 	_nor_spi_tx(nor, &WriteDisCmd, sizeof(WriteDisCmd));
 	_nor_cs_deassert(nor);
 }
-//###################################################################################################################
+
 uint8_t _nor_ReadStatusRegister(nor_t *nor, enum _nor_sr_select_e SelectSR)
 {
 	uint8_t status = 0, ReadSRCmd;
@@ -143,7 +143,7 @@ uint8_t _nor_ReadStatusRegister(nor_t *nor, enum _nor_sr_select_e SelectSR)
 
 	return status;
 }
-//###################################################################################################################
+
 void _nor_WriteStatusRegister(nor_t *nor, enum _nor_sr_select_e SelectSR, uint8_t data)
 {
 	uint8_t WriteSR[2];
@@ -208,6 +208,8 @@ nor_err_e _nor_check_buff_is_empty(uint8_t *pBuffer, uint32_t len){
  */
 
 nor_err_e NOR_Init(nor_t *nor){
+	uint8_t ExitPDCmd = NOR_RELEASE_PD;
+
 	if (nor == NULL || nor->config.CsAssert == NULL ||
 			nor->config.CsDeassert == NULL || nor->config.DelayUs == NULL ||
 			nor->config.SpiRxFxn == NULL || nor->config.SpiTxFxn == NULL){
@@ -222,22 +224,25 @@ nor_err_e NOR_Init(nor_t *nor){
 	_nor_delay_us(nor, 100);
 
 	// we are assuming, on startup, that the Flash is on Power Down State
-	nor->_internal.u8PdCount = 1;
-	nor->pdState = NOR_DEEP_POWER_DOWN;
-	NOR_ExitPowerDown(nor);
+	nor->_internal.u8PdCount = 0;
+	nor->pdState = NOR_IN_IDLE;
+	_nor_cs_assert(nor);
+	_nor_spi_tx(nor, &ExitPDCmd, sizeof(ExitPDCmd));
+	_nor_cs_deassert(nor);
 
 	nor->info.u32JedecID = _nor_ReadID(nor);
-	// TODO: fnx to determine
-
 	if (nor->info.u32JedecID == 0x000000 || nor->info.u32JedecID == 0xFFFFFF){
 		// invalid Id, I thing we don't has any flash on SPI
 		return NOR_NO_MEMORY_FOUND;
 	}
+	nor->Manufacturer = NOR_IDS_Interpret_Manufacturer(nor->info.u32JedecID);
+	nor->Model = NOR_IDS_Interpret_Model(nor->info.u32JedecID);
+	if (nor->Model == NOR_MODEL_UNKNOWN){
+		return NOR_UNKNOWN_DEVICE;
+	}
 
 	nor->info.u64UniqueId = _nor_ReadUniqID(nor);
-	// TODO implement this function
-//	nor->info.u32BlockCount = nor_get_blocks_from_id(nor);
-	nor->info.u32BlockCount = 1024;
+	nor->info.u32BlockCount = NOR_IDS_GetQtdBlocks(nor->info.u32JedecID);
 
 	nor->info.u16PageSize = NOR_PAGE_SIZE;
 	nor->info.u16SectorSize = NOR_SECTOR_SIZE;
@@ -249,21 +254,25 @@ nor_err_e NOR_Init(nor_t *nor){
 	_nor_ReadStatusRegister(nor, _SELECT_SR1);
 	_nor_ReadStatusRegister(nor, _SELECT_SR2);
 	_nor_ReadStatusRegister(nor, _SELECT_SR3);
+
+	nor->_internal.u16Initialized = NOR_INITIALIZED_FLAG;
 #if (_W25QXX_DEBUG == 1)
-	printf("w25qxx Page Size: %d Bytes\r\n", w25qxx.PageSize);
-	printf("w25qxx Page Count: %d\r\n", w25qxx.PageCount);
-	printf("w25qxx Sector Size: %d Bytes\r\n", w25qxx.SectorSize);
-	printf("w25qxx Sector Count: %d\r\n", w25qxx.SectorCount);
-	printf("w25qxx Block Size: %d Bytes\r\n", w25qxx.BlockSize);
-	printf("w25qxx Block Count: %d\r\n", w25qxx.BlockCount);
-	printf("w25qxx Capacity: %d KiloBytes\r\n", w25qxx.CapacityInKiloByte);
-	printf("w25qxx Init Done\r\n");
+	NOR_PRINTF("w25qxx Page Size: %d Bytes\r\n", w25qxx.PageSize);
+	NOR_PRINTF("w25qxx Page Count: %d\r\n", w25qxx.PageCount);
+	NOR_PRINTF("w25qxx Sector Size: %d Bytes\r\n", w25qxx.SectorSize);
+	NOR_PRINTF("w25qxx Sector Count: %d\r\n", w25qxx.SectorCount);
+	NOR_PRINTF("w25qxx Block Size: %d Bytes\r\n", w25qxx.BlockSize);
+	NOR_PRINTF("w25qxx Block Count: %d\r\n", w25qxx.BlockCount);
+	NOR_PRINTF("w25qxx Capacity: %d KiloBytes\r\n", w25qxx.CapacityInKiloByte);
+	NOR_PRINTF("w25qxx Init Done\r\n");
 #endif
 
 	return NOR_OK;
 }
 
 nor_err_e NOR_Init_wo_ID(nor_t *nor){
+	uint8_t ExitPDCmd = NOR_RELEASE_PD;
+
 	if (nor == NULL || nor->config.CsAssert == NULL ||
 			nor->config.CsDeassert == NULL || nor->config.DelayUs == NULL ||
 			nor->config.SpiRxFxn == NULL || nor->config.SpiTxFxn == NULL){
@@ -278,9 +287,11 @@ nor_err_e NOR_Init_wo_ID(nor_t *nor){
 	_nor_delay_us(nor, 100);
 
 	// we are assuming, on startup, that the Flash is on Power Down State
-	nor->_internal.u8PdCount = 1;
-	nor->pdState = NOR_DEEP_POWER_DOWN;
-	NOR_ExitPowerDown(nor);
+	nor->_internal.u8PdCount = 0;
+	nor->pdState = NOR_IN_IDLE;
+	_nor_cs_assert(nor);
+	_nor_spi_tx(nor, &ExitPDCmd, sizeof(ExitPDCmd));
+	_nor_cs_deassert(nor);
 
 	nor->info.u32JedecID = 0x0;
 	nor->info.u64UniqueId = _nor_ReadUniqID(nor);
@@ -289,36 +300,46 @@ nor_err_e NOR_Init_wo_ID(nor_t *nor){
 	nor->info.u16SectorSize = NOR_SECTOR_SIZE;
 	nor->info.u32BlockSize = NOR_BLOCK_SIZE;
 
+	nor->info.u32SectorCount = nor->info.u32BlockCount * (NOR_BLOCK_SIZE / NOR_SECTOR_SIZE);
+	nor->info.u32PageCount = (nor->info.u32SectorCount * nor->info.u16SectorSize) / nor->info.u16PageSize;
+	nor->info.u32Size = (nor->info.u32SectorCount * nor->info.u16SectorSize);
+
 	_nor_ReadStatusRegister(nor, _SELECT_SR1);
 	_nor_ReadStatusRegister(nor, _SELECT_SR2);
 	_nor_ReadStatusRegister(nor, _SELECT_SR3);
 
+	nor->_internal.u16Initialized = NOR_INITIALIZED_FLAG;
+
 	return NOR_OK;
 }
 
-nor_err_e NOR_EnterPowerDown(nor_t *nor){
-	uint8_t DeepPDCmd = NOR_ENTER_PD;
+nor_err_e NOR_ExitPowerDown(nor_t *nor){
+	uint8_t ExitPDCmd = NOR_RELEASE_PD;
 
 	_SANITY_CHECK(nor);
 
 	if (nor->_internal.u8PdCount > 0){
 		nor->_internal.u8PdCount--;
 		if (nor->_internal.u8PdCount == 0){
-			_nor_spi_tx(nor, &DeepPDCmd, sizeof(DeepPDCmd));
-			nor->pdState = NOR_DEEP_POWER_DOWN;
+			_nor_cs_assert(nor);
+			_nor_spi_tx(nor, &ExitPDCmd, sizeof(ExitPDCmd));
+			_nor_cs_deassert(nor);
+			nor->pdState = NOR_IN_IDLE;
 		}
 	}
 
 	return NOR_OK;
 }
-nor_err_e NOR_ExitPortDown(nor_t *nor){
-	uint8_t ExitPDCmd = NOR_RELEASE_PD;
+nor_err_e NOR_EnterPowerDown(nor_t *nor){
+	uint8_t DeepPDCmd = NOR_ENTER_PD;
 
 	_SANITY_CHECK(nor);
 
 	if (nor->_internal.u8PdCount == 0){
-		_nor_spi_tx(nor, &ExitPDCmd, sizeof(ExitPDCmd));
-		nor->pdState = NOR_IN_IDLE;
+		_nor_cs_assert(nor);
+		_nor_spi_tx(nor, &DeepPDCmd, sizeof(DeepPDCmd));
+		_nor_cs_deassert(nor);
+		nor->pdState = NOR_DEEP_POWER_DOWN;
 	}
 	nor->_internal.u8PdCount++;
 
@@ -386,39 +407,29 @@ nor_err_e NOR_EraseBlock(nor_t *nor, uint32_t BlockAddr){
 	return NOR_EraseAddress(nor, Address, NOR_ERASE_64K);
 }
 
-nor_err_e NOR_PageToSector(nor_t *nor, uint32_t PageAddr, uint32_t *SectorAddr){
+uint32_t NOR_PageToSector(nor_t *nor, uint32_t PageAddr){
 	_SANITY_CHECK(nor);
-	*SectorAddr = PageAddr * nor->info.u16PageSize / nor->info.u16SectorSize;
-
-	return NOR_OK;
+	return PageAddr * nor->info.u16PageSize / nor->info.u16SectorSize;
 }
 
-nor_err_e NOR_PageToBlock(nor_t *nor, uint32_t PageAddr, uint32_t *BlockAddr){
+uint32_t NOR_PageToBlock(nor_t *nor, uint32_t PageAddr){
 	_SANITY_CHECK(nor);
-	*BlockAddr = PageAddr * nor->info.u16PageSize / nor->info.u32BlockSize;
-
-	return NOR_OK;
+	return PageAddr * nor->info.u16PageSize / nor->info.u32BlockSize;
 }
 
-nor_err_e NOR_SectorToBlock(nor_t *nor, uint32_t SectorAddr, uint32_t *BlockAddr){
+uint32_t NOR_SectorToBlock(nor_t *nor, uint32_t SectorAddr){
 	_SANITY_CHECK(nor);
-	*BlockAddr = SectorAddr * nor->info.u16SectorSize / nor->info.u32BlockSize;
-
-	return NOR_OK;
+	return  SectorAddr * nor->info.u16SectorSize / nor->info.u32BlockSize;
 }
 
-nor_err_e NOR_SectorToPage(nor_t *nor, uint32_t SectorAddr, uint32_t *PageAddr){
+uint32_t NOR_SectorToPage(nor_t *nor, uint32_t SectorAddr){
 	_SANITY_CHECK(nor);
-	*PageAddr = SectorAddr * nor->info.u16SectorSize / nor->info.u16PageSize;
-
-	return NOR_OK;
+	return SectorAddr * nor->info.u16SectorSize / nor->info.u16PageSize;
 }
 
-nor_err_e NOR_BlockToPage(nor_t *nor, uint32_t BlockAddr, uint32_t *PageAddr){
+uint32_t NOR_BlockToPage(nor_t *nor, uint32_t BlockAddr){
 	_SANITY_CHECK(nor);
-	*PageAddr = BlockAddr * nor->info.u32BlockSize / nor->info.u16PageSize;
-
-	return NOR_OK;
+	return  BlockAddr * nor->info.u32BlockSize / nor->info.u16PageSize;
 }
 
 nor_err_e NOR_IsEmptyPage(nor_t *nor, uint32_t PageAddr, uint32_t Offset, uint32_t NumBytesToCheck){
@@ -486,23 +497,36 @@ nor_err_e NOR_IsEmptyBlock(nor_t *nor, uint32_t BlockAddr, uint32_t Offset, uint
 
 nor_err_e NOR_WriteBytes(nor_t *nor, uint8_t *pBuffer, uint32_t WriteAddr, uint32_t NumBytesToWrite){
 	uint8_t WriteCmd[4];
+	uint32_t _BytesToWrite;
 
 	_SANITY_CHECK(nor);
 
+	if (NumBytesToWrite == 0){
+		return NOR_INVALID_PARAMS;
+	}
 	// TODO check if Address is not grater than the Flash size
 
 	// TODO check if Number of bytes to read will not overlap the page
 	// if happens, iterate over the pages
-	_nor_WriteEnable(nor);
-	WriteCmd[0] = NOR_PAGE_PROGRAM;
-	WriteCmd[1] = ((WriteAddr >> 16) & 0xFF);
-	WriteCmd[2] = ((WriteAddr >> 8) & 0xFF);
-	WriteCmd[3] = ((WriteAddr) & 0xFF);
-	_nor_cs_assert(nor);
-	_nor_spi_tx(nor, WriteCmd, sizeof(WriteCmd));
-	_nor_spi_tx(nor, pBuffer, NumBytesToWrite);
-	_nor_cs_deassert(nor);
-	_nor_WaitForWriteEnd(nor, NOR_EXPECT_PAGE_PROG_TIME);
+	do{
+		if (((WriteAddr%nor->info.u16PageSize)+NumBytesToWrite) > nor->info.u16PageSize){
+			_BytesToWrite = nor->info.u16PageSize;
+		}
+		else{
+			_BytesToWrite = NumBytesToWrite;
+		}
+		_nor_WriteEnable(nor);
+		WriteCmd[0] = NOR_PAGE_PROGRAM;
+		WriteCmd[1] = ((WriteAddr >> 16) & 0xFF);
+		WriteCmd[2] = ((WriteAddr >> 8) & 0xFF);
+		WriteCmd[3] = ((WriteAddr) & 0xFF);
+		_nor_cs_assert(nor);
+		_nor_spi_tx(nor, WriteCmd, sizeof(WriteCmd));
+		_nor_spi_tx(nor, pBuffer, _BytesToWrite);
+		_nor_cs_deassert(nor);
+		_nor_WaitForWriteEnd(nor, NOR_EXPECT_PAGE_PROG_TIME);
+		NumBytesToWrite -= _BytesToWrite;
+	}while (NumBytesToWrite > 0);
 
 	return NOR_OK;
 }
@@ -552,22 +576,35 @@ nor_err_e NOR_WriteBlock(nor_t *nor, uint8_t *pBuffer, uint32_t BlockAddr, uint3
 
 nor_err_e NOR_ReadBytes(nor_t *nor, uint8_t *pBuffer, uint32_t ReadAddr, uint32_t NumByteToRead){
 	uint8_t ReadCmd[5];
+	uint32_t _BytesToRead;
 
 	_SANITY_CHECK(nor);
 
+	if (NumByteToRead == 0){
+		return NOR_INVALID_PARAMS;
+	}
 	// TODO check if Address is not grater than the Flash size
 
 	// TODO check if Number of bytes to read will not overlap the page
 	// if happens, iterate over the pages
-	ReadCmd[0] = NOR_READ_FAST_DATA;
-	ReadCmd[1] = ((ReadAddr >> 16) & 0xFF);
-	ReadCmd[2] = ((ReadAddr >> 8) & 0xFF);
-	ReadCmd[3] = ((ReadAddr) & 0xFF);
-	ReadCmd[4] = 0x00;
-	_nor_cs_assert(nor);
-	_nor_spi_tx(nor, ReadCmd, sizeof(ReadCmd));
-	_nor_spi_rx(nor, pBuffer, NumByteToRead);
-	_nor_cs_deassert(nor);
+	do{
+		if (((ReadAddr%nor->info.u16PageSize)+NumByteToRead) > nor->info.u16PageSize){
+			_BytesToRead = nor->info.u16PageSize;
+		}
+		else{
+			_BytesToRead = NumByteToRead;
+		}
+		ReadCmd[0] = NOR_READ_FAST_DATA;
+		ReadCmd[1] = ((ReadAddr >> 16) & 0xFF);
+		ReadCmd[2] = ((ReadAddr >> 8) & 0xFF);
+		ReadCmd[3] = ((ReadAddr) & 0xFF);
+		ReadCmd[4] = 0x00;
+		_nor_cs_assert(nor);
+		_nor_spi_tx(nor, ReadCmd, sizeof(ReadCmd));
+		_nor_spi_rx(nor, pBuffer, _BytesToRead);
+		_nor_cs_deassert(nor);
+		NumByteToRead -= _BytesToRead;
+	}while(NumByteToRead > 0);
 
 	return NOR_OK;
 }
