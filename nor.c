@@ -51,27 +51,27 @@ enum _nor_sr_select_e{
 
 /* Functions */
 
-void _nor_cs_assert(nor_t *nor){
+static void _nor_cs_assert(nor_t *nor){
 	nor->config.CsAssert();
 }
 
-void _nor_cs_deassert(nor_t *nor){
+static void _nor_cs_deassert(nor_t *nor){
 	nor->config.CsDeassert();
 }
 
-void _nor_spi_tx(nor_t *nor, uint8_t *txBuf, uint32_t size){
+static void _nor_spi_tx(nor_t *nor, uint8_t *txBuf, uint32_t size){
 	nor->config.SpiTxFxn(txBuf, size);
 }
 
-void _nor_spi_rx(nor_t *nor, uint8_t *rxBuf, uint32_t size){
+static void _nor_spi_rx(nor_t *nor, uint8_t *rxBuf, uint32_t size){
 	nor->config.SpiRxFxn(rxBuf, size);
 }
 
-void _nor_delay_us(nor_t *nor, uint32_t us){
+static void _nor_delay_us(nor_t *nor, uint32_t us){
 	nor->config.DelayUs(us);
 }
 
-uint32_t _nor_ReadID(nor_t *nor)
+static uint32_t _nor_ReadID(nor_t *nor)
 {
 	uint8_t JedecIdCmd = NOR_JEDEC_ID;
 	uint32_t ID = 0;
@@ -84,7 +84,7 @@ uint32_t _nor_ReadID(nor_t *nor)
 	return ID;
 }
 
-uint64_t _nor_ReadUniqID(nor_t *nor)
+static uint64_t _nor_ReadUniqID(nor_t *nor)
 {
 	uint8_t UniqueIdCmd = NOR_UNIQUE_ID;
 	uint64_t UniqueId = 0;
@@ -100,7 +100,7 @@ uint64_t _nor_ReadUniqID(nor_t *nor)
 	return UniqueId;
 }
 
-void _nor_WriteEnable(nor_t *nor)
+static void _nor_WriteEnable(nor_t *nor)
 {
 	uint8_t WriteEnCmd = NOR_CMD_WRITE_EN;
 
@@ -202,7 +202,7 @@ nor_err_e _nor_check_buff_is_empty(uint8_t *pBuffer, uint32_t len){
 
 	for (i=0 ; i<len ; i++){
 		if (pBuffer[i] != 0xFF){
-			NOR_PRINTF("Region is empty.");
+			NOR_PRINTF("Region is not empty.");
 			return NOR_REGIONS_IS_NOT_EMPTY;
 		}
 	}
@@ -481,13 +481,16 @@ nor_err_e NOR_IsEmptyPage(nor_t *nor, uint32_t PageAddr, uint32_t Offset, uint32
 	_SANITY_CHECK(nor);
 
 	ActAddress = (nor->info.u16PageSize * PageAddr) + Offset;
-	if (NumBytesToCheck == 0 || (NumBytesToCheck + Offset) > nor->info.u16PageSize){
-		NumBytesToCheck = nor->info.u16PageSize - Offset;
-	}
 	NOR_PRINTF("Checking if %d bytes of Address 0x%08X are empty.\n", (uint)NumBytesToCheck, (uint)ActAddress);
 	while (NumBytesToCheck > 0){
 		NOR_ReadBytes(nor, pBuffer, ActAddress, NOR_EMPTY_CHECK_BUFFER_LEN);
-		NumBytesToCheck -= NOR_EMPTY_CHECK_BUFFER_LEN;
+		ActAddress += NOR_EMPTY_CHECK_BUFFER_LEN;
+		if (NumBytesToCheck >= NOR_EMPTY_CHECK_BUFFER_LEN){
+			NumBytesToCheck -= NOR_EMPTY_CHECK_BUFFER_LEN;
+		}
+		else{
+			NumBytesToCheck = 0;
+		}
 		if (_nor_check_buff_is_empty(pBuffer, NOR_EMPTY_CHECK_BUFFER_LEN) == NOR_REGIONS_IS_NOT_EMPTY){
 			NOR_PRINTF("Warning: Region is NOT empty.");
 			return NOR_REGIONS_IS_NOT_EMPTY;
@@ -504,13 +507,16 @@ nor_err_e NOR_IsEmptySector(nor_t *nor, uint32_t SectorAddr, uint32_t Offset, ui
 	_SANITY_CHECK(nor);
 
 	ActAddress = (nor->info.u16SectorSize * SectorAddr) + Offset;
-	if (NumBytesToCheck == 0 || (NumBytesToCheck + Offset) > nor->info.u16SectorSize){
-		NumBytesToCheck = nor->info.u16SectorSize - Offset;
-	}
 	NOR_PRINTF("Checking if %d bytes of Address 0x%08X are empty.\n", (uint)NumBytesToCheck, (uint)ActAddress);
 	while (NumBytesToCheck > 0){
 		NOR_ReadBytes(nor, pBuffer, ActAddress, NOR_EMPTY_CHECK_BUFFER_LEN);
-		NumBytesToCheck -= NOR_EMPTY_CHECK_BUFFER_LEN;
+		ActAddress += NOR_EMPTY_CHECK_BUFFER_LEN;
+		if (NumBytesToCheck >= NOR_EMPTY_CHECK_BUFFER_LEN){
+			NumBytesToCheck -= NOR_EMPTY_CHECK_BUFFER_LEN;
+		}
+		else{
+			NumBytesToCheck = 0;
+		}
 		if (_nor_check_buff_is_empty(pBuffer, NOR_EMPTY_CHECK_BUFFER_LEN) == NOR_REGIONS_IS_NOT_EMPTY){
 			NOR_PRINTF("Warning: Region is NOT empty.");
 			return NOR_REGIONS_IS_NOT_EMPTY;
@@ -527,13 +533,16 @@ nor_err_e NOR_IsEmptyBlock(nor_t *nor, uint32_t BlockAddr, uint32_t Offset, uint
 	_SANITY_CHECK(nor);
 
 	ActAddress = (nor->info.u32BlockSize * BlockAddr) + Offset;
-	if (NumBytesToCheck == 0 || (NumBytesToCheck + Offset) > nor->info.u32BlockSize){
-		NumBytesToCheck = nor->info.u32BlockSize - Offset;
-	}
 	NOR_PRINTF("Checking if %d bytes of Address 0x%08X are empty.\n", (uint)NumBytesToCheck, (uint)ActAddress);
 	while (NumBytesToCheck > 0){
 		NOR_ReadBytes(nor, pBuffer, ActAddress, NOR_EMPTY_CHECK_BUFFER_LEN);
-		NumBytesToCheck -= NOR_EMPTY_CHECK_BUFFER_LEN;
+		ActAddress += NOR_EMPTY_CHECK_BUFFER_LEN;
+		if (NumBytesToCheck >= NOR_EMPTY_CHECK_BUFFER_LEN){
+			NumBytesToCheck -= NOR_EMPTY_CHECK_BUFFER_LEN;
+		}
+		else{
+			NumBytesToCheck = 0;
+		}
 		if (_nor_check_buff_is_empty(pBuffer, NOR_EMPTY_CHECK_BUFFER_LEN) == NOR_REGIONS_IS_NOT_EMPTY){
 			NOR_PRINTF("Warning: Region is NOT empty.");
 			return NOR_REGIONS_IS_NOT_EMPTY;
