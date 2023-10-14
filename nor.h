@@ -130,6 +130,7 @@ uint32_t NOR_SectorToBlock(nor_t *nor, uint32_t SectorAddr);
 uint32_t NOR_SectorToPage(nor_t *nor, uint32_t SectorAddr);
 uint32_t NOR_BlockToPage(nor_t *nor, uint32_t BlockAddr);
 
+nor_err_e NOR_IsEmptyAddress(nor_t *nor, uint32_t Address, uint32_t NumBytesToCheck);
 nor_err_e NOR_IsEmptyPage(nor_t *nor, uint32_t PageAddr, uint32_t Offset, uint32_t NumBytesToCheck);
 nor_err_e NOR_IsEmptySector(nor_t *nor, uint32_t SectorAddr, uint32_t Offset, uint32_t NumBytesToCheck);
 nor_err_e NOR_IsEmptyBlock(nor_t *nor, uint32_t BlockAddr, uint32_t Offset, uint32_t NumBytesToCheck);
