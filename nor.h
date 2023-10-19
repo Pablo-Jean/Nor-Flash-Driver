@@ -113,16 +113,102 @@ typedef struct{
  * Publics
  */
 
+/* **********************************
+ * Initialize Functions
+ * **********************************/
+
+/**
+ * @brief Initialize the Flash Nor Driver. Getting the device JEDEC ID
+ * and your size.
+ *
+ * @param nor : pointer to the Nor Instance
+ * @return NOR_OK if everything is fine
+ * @return NOR_INVALID_PARAMS if any parameter was NULL
+ * @return NOR_NO_MEMORY_FOUND if no device was found on SPI Bus, or a
+ * mistake on SPI implementation
+ * @return NOR_UNKNOWN_DEVICE if JEDEC Device ID was not registered on nor_ids.
+ * Or can be a mistake on the SPI implementation.
+ *
+ * @note If you get NOR_UNKNOWN_DEVICE, but you known your memory device, you
+ * can call the NOR_Init_wo_ID, providing the Block Count value into info of
+ * nor_t struct, where, this function, will bypass the JEDEC ID identification
+ */
 nor_err_e NOR_Init(nor_t *nor);
+
+/**
+ * @brief Initialize the Flash Nor Driver. The difference here, is that the
+ * routine will get the JEDEC ID, but will bypass the Block Count Configuration.
+ * Please! Provide the Block Count before call this functions:
+ * Example: "nor.info.u32BlockCount = 1024;"
+ *
+ * @param nor pointer to the Nor Instance
+ * @return NOR_OK if everything is fine
+ * @return NOR_INVALID_PARAMS if any parameter was NULL or Block Count was 0
+ * @return NOR_NO_MEMORY_FOUND if no device was found on SPI Bus, or a
+ * mistake on SPI implementation
+ * Or can be a mistake on the SPI implementation.
+ */
 nor_err_e NOR_Init_wo_ID(nor_t *nor);
 
+/* **********************************
+ * Deep Power Down Functions
+ * **********************************/
+
+/**
+ * @brief Issue the Deep Power Down instruction into the SPI. The nor instance has a
+ * internal counter, to prevent issuing multiple commands and, preventing a
+ * bug in environments where the Flash device was used by multiple threads.
+ * Every call to this function will increment the counter. The instruction is issued
+ * only if this count, at the start, is 0.
+ *
+ * @param nor pointer to the Nor Instance
+ * @return NOR_OK everything was ok
+ * @return NOR_NOT_INITIALIZED the Instance was not initialized, please call NOR_Init
+ * or NOR_Init_wo_ID
+ * @return NOR_INVALID_PARAMS nor was NULL
+ */
 nor_err_e NOR_EnterPowerDown(nor_t *nor);
+
+/**
+ * @brief Issue the Release Deep Power Down instruction into the SPI.
+ * The nor instance has a internal counter, to prevent issuing multiple commands and,
+ * preventing a bug in environments where the Flash device was used by multiple threads.
+ * Every call to this function will decrement the counter. When decrementing, if counter
+ * was 0, the command was sent to the device. If the counter is zero, this command is
+ * ignored.
+ *
+ * @param nor pointer to the Nor Instance
+ * @return NOR_OK everything was ok
+ * @return NOR_NOT_INITIALIZED the Instance was not initialized, please call NOR_Init
+ * or NOR_Init_wo_ID
+ * @return NOR_INVALID_PARAMS nor was NULL
+ */
 nor_err_e NOR_ExitPowerDown(nor_t *nor);
 
+/* **********************************
+ * Memory Erase Functions
+ * **********************************/
+
+/**
+ * @brief Erase the entire memory.
+ *
+ * @note This command can take a lot of time, sit down, open your soda
+ * and just wait. So, take care with any watchdog.
+ *
+ * @param nor pointer to the Nor Instance
+ * @return NOR_OK everything was ok
+ * @return NOR_NOT_INITIALIZED the Instance was not initialized, please call NOR_Init
+ * or NOR_Init_wo_ID
+ * @return NOR_INVALID_PARAMS nor was NULL
+ */
 nor_err_e NOR_EraseChip(nor_t *nor);
 nor_err_e NOR_EraseAddress(nor_t *nor, uint32_t Address, nor_erase_method_e method);
 nor_err_e NOR_EraseSector(nor_t *nor, uint32_t SectorAddr);
 nor_err_e NOR_EraseBlock(nor_t *nor, uint32_t BlockAddr);
+
+/* **********************************
+ * Page/Sector/Block Conversions
+ * **********************************/
 
 uint32_t NOR_PageToSector(nor_t *nor, uint32_t PageAddr);
 uint32_t NOR_PageToBlock(nor_t *nor, uint32_t PageAddr);
@@ -130,15 +216,27 @@ uint32_t NOR_SectorToBlock(nor_t *nor, uint32_t SectorAddr);
 uint32_t NOR_SectorToPage(nor_t *nor, uint32_t SectorAddr);
 uint32_t NOR_BlockToPage(nor_t *nor, uint32_t BlockAddr);
 
+/* **********************************
+ * Empty regions check Functions
+ * **********************************/
+
 nor_err_e NOR_IsEmptyAddress(nor_t *nor, uint32_t Address, uint32_t NumBytesToCheck);
 nor_err_e NOR_IsEmptyPage(nor_t *nor, uint32_t PageAddr, uint32_t Offset, uint32_t NumBytesToCheck);
 nor_err_e NOR_IsEmptySector(nor_t *nor, uint32_t SectorAddr, uint32_t Offset, uint32_t NumBytesToCheck);
 nor_err_e NOR_IsEmptyBlock(nor_t *nor, uint32_t BlockAddr, uint32_t Offset, uint32_t NumBytesToCheck);
 
+/* **********************************
+ * Memory programming functions
+ * **********************************/
+
 nor_err_e NOR_WriteBytes(nor_t *nor, uint8_t *pBuffer, uint32_t WriteAddr, uint32_t NumBytesToWrite);
 nor_err_e NOR_WritePage(nor_t *nor, uint8_t *pBuffer, uint32_t PageAddr, uint32_t Offset, uint32_t NumBytesToWrite);
 nor_err_e NOR_WriteSector(nor_t *nor, uint8_t *pBuffer, uint32_t SectorAddr, uint32_t Offset, uint32_t NumBytesToWrite);
 nor_err_e NOR_WriteBlock(nor_t *nor, uint8_t *pBuffer, uint32_t BlockAddr, uint32_t Offset, uint32_t NumBytesToWrite);
+
+/* **********************************
+ * Memory read functions
+ * **********************************/
 
 nor_err_e NOR_ReadBytes(nor_t *nor, uint8_t *pBuffer, uint32_t ReadAddr, uint32_t NumByteToRead);
 nor_err_e NOR_ReadPage(nor_t *nor, uint8_t *pBuffer, uint32_t PageAddr, uint32_t Offset, uint32_t NumByteToRead);

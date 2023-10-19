@@ -287,7 +287,8 @@ nor_err_e NOR_Init_wo_ID(nor_t *nor){
 
 	if (nor == NULL || nor->config.CsAssert == NULL ||
 			nor->config.CsDeassert == NULL || nor->config.DelayUs == NULL ||
-			nor->config.SpiRxFxn == NULL || nor->config.SpiTxFxn == NULL){
+			nor->config.SpiRxFxn == NULL || nor->config.SpiTxFxn == NULL ||
+			nor->info.u32BlockCount == 0){
 		return NOR_INVALID_PARAMS;
 	}
 	if (nor->_internal.u16Initialized == NOR_INITIALIZED_FLAG){
@@ -382,7 +383,7 @@ nor_err_e NOR_EraseChip(nor_t *nor){
 	_nor_cs_assert(nor);
 	_nor_spi_tx(nor, &EraseChipCmd, sizeof(EraseChipCmd));
 	_nor_cs_deassert(nor);
-	err = _nor_WaitForWriteEnd(nor, 80000000);
+	err = _nor_WaitForWriteEnd(nor, NOR_EXPECT_ERASE_CHIP);
 	if (err != NOR_OK){
 		NOR_PRINTF("ERROR: Failed to erase flash\n");
 	}
