@@ -202,6 +202,25 @@ nor_err_e NOR_ExitPowerDown(nor_t *nor);
  * @return NOR_INVALID_PARAMS nor was NULL
  */
 nor_err_e NOR_EraseChip(nor_t *nor);
+
+/**
+ * @brief Erase a specific address, provided by the developer.
+ *
+ * @note The minimum address size to erase are 4K (4096) of an entire sector.
+ * Generally, the sectors are aligned in 0x1000. So, if you issue an address like
+ * '0x5400', the command will consideer your address as '0x5000', for the command to
+ * erase a Sector.
+ *
+ * @param nor pointer to the Nor Instance
+ * @param Address The address that we want to erase
+ * @param method Accept the following vaues: NOR_ERASE_4K, NOR_ERASE_32K and
+ * NOR_ERASE_64K
+ * @return NOR_OK everything was ok
+ * @return NOR_NOT_INITIALIZED the Instance was not initialized, please call NOR_Init
+ * or NOR_Init_wo_ID
+ * @return NOR_INVALID_PARAMS nor was NULL or methos is an invalid address
+ * @return NOR_OUT_OF_RANGE if Address is greater than the device memory
+ */
 nor_err_e NOR_EraseAddress(nor_t *nor, uint32_t Address, nor_erase_method_e method);
 nor_err_e NOR_EraseSector(nor_t *nor, uint32_t SectorAddr);
 nor_err_e NOR_EraseBlock(nor_t *nor, uint32_t BlockAddr);
