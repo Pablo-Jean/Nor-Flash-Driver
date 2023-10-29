@@ -37,29 +37,41 @@
  * Enumerates
  */
 
+/**
+ * @brief
+ *
+ */
 typedef enum{
-	NOR_IN_IDLE,
-	NOR_DEEP_POWER_DOWN
+	NOR_IN_IDLE,       /**< NOR_IN_IDLE */
+	NOR_DEEP_POWER_DOWN/**< NOR_DEEP_POWER_DOWN */
 }nor_pd_e;
 
+/**
+ * @brief
+ *
+ */
 typedef enum{
-	NOR_OK,
-	NOR_FAIL,
-	NOR_INVALID_PARAMS,
-	NOR_NO_MEMORY_FOUND,
-	NOR_UNKNOWN_DEVICE,
-	NOR_OUT_OF_RANGE,
-	NOR_NOT_INITIALIZED,
-	NOR_REGIONS_IS_NOT_EMPTY,
-	NOR_IS_LOCKED,
+	NOR_OK,                  /**< NOR_OK */
+	NOR_FAIL,                /**< NOR_FAIL */
+	NOR_INVALID_PARAMS,      /**< NOR_INVALID_PARAMS */
+	NOR_NO_MEMORY_FOUND,     /**< NOR_NO_MEMORY_FOUND */
+	NOR_UNKNOWN_DEVICE,      /**< NOR_UNKNOWN_DEVICE */
+	NOR_OUT_OF_RANGE,        /**< NOR_OUT_OF_RANGE */
+	NOR_NOT_INITIALIZED,     /**< NOR_NOT_INITIALIZED */
+	NOR_REGIONS_IS_NOT_EMPTY,/**< NOR_REGIONS_IS_NOT_EMPTY */
+	NOR_IS_LOCKED,           /**< NOR_IS_LOCKED */
 
-	NOR_UNKNOWN = 0xFF
+	NOR_UNKNOWN = 0xFF       /**< NOR_UNKNOWN */
 }nor_err_e;
 
+/**
+ * @brief
+ *
+ */
 typedef enum{
-	NOR_ERASE_4K,
-	NOR_ERASE_32K,
-	NOR_ERASE_64K
+	NOR_ERASE_4K, /**< NOR_ERASE_4K */
+	NOR_ERASE_32K,/**< NOR_ERASE_32K */
+	NOR_ERASE_64K /**< NOR_ERASE_64K */
 }nor_erase_method_e;
 
 /**
@@ -76,7 +88,6 @@ typedef void (*delay_us_fxn_t)(uint32_t us);
  * Structs
  *
  */
-
 typedef struct{
 	struct{
 		// TODO : Document and explain all these functions

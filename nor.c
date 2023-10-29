@@ -269,7 +269,7 @@ nor_err_e NOR_Init(nor_t *nor){
 	nor->_internal.u16Initialized = NOR_INITIALIZED_FLAG;
 	NOR_PRINTF("== Memory Flash NOR Information ==\n");
 	NOR_PRINTF(" JEDEC ID     | 0x%06X\n", (uint)nor->info.u32JedecID);
-	NOR_PRINTF(" Unique ID    | 0x%016X\n", (uint)nor->info.u64UniqueId);
+	NOR_PRINTF(" Unique ID    | 0x%lluX\n", (nor->info.u64UniqueId));
 	NOR_PRINTF(" Page Size    | %d Bytes\n", nor->info.u16PageSize);
 	NOR_PRINTF(" Sector Size  | %d Bytes\n", (uint)nor->info.u16SectorSize);
 	NOR_PRINTF(" Block Size   | %d Bytes\n", (uint)nor->info.u32BlockSize);
@@ -324,7 +324,7 @@ nor_err_e NOR_Init_wo_ID(nor_t *nor){
 	nor->_internal.u16Initialized = NOR_INITIALIZED_FLAG;
 	NOR_PRINTF("== Memory Flash NOR Information ==\n");
 	NOR_PRINTF(" JEDEC ID     | 0x%06X\n", (uint)nor->info.u32JedecID);
-	NOR_PRINTF(" Unique ID    | 0x%016X\n", (uint)nor->info.u64UniqueId);
+	NOR_PRINTF(" Unique ID    | 0x%lluX\n", (nor->info.u64UniqueId));
 	NOR_PRINTF(" Page Size    | %d Bytes\n", nor->info.u16PageSize);
 	NOR_PRINTF(" Sector Size  | %d Bytes\n", (uint)nor->info.u16SectorSize);
 	NOR_PRINTF(" Block Size   | %d Bytes\n", (uint)nor->info.u32BlockSize);
@@ -500,7 +500,6 @@ nor_err_e NOR_IsEmptyAddress(nor_t *nor, uint32_t Address, uint32_t NumBytesToCh
 }
 
 nor_err_e NOR_IsEmptyPage(nor_t *nor, uint32_t PageAddr, uint32_t Offset, uint32_t NumBytesToCheck){
-	uint8_t pBuffer[NOR_EMPTY_CHECK_BUFFER_LEN];
 	uint32_t ActAddress;
 
 	_SANITY_CHECK(nor);
@@ -510,7 +509,6 @@ nor_err_e NOR_IsEmptyPage(nor_t *nor, uint32_t PageAddr, uint32_t Offset, uint32
 }
 
 nor_err_e NOR_IsEmptySector(nor_t *nor, uint32_t SectorAddr, uint32_t Offset, uint32_t NumBytesToCheck){
-	uint8_t pBuffer[NOR_EMPTY_CHECK_BUFFER_LEN];
 	uint32_t ActAddress;
 
 	_SANITY_CHECK(nor);
@@ -520,7 +518,6 @@ nor_err_e NOR_IsEmptySector(nor_t *nor, uint32_t SectorAddr, uint32_t Offset, ui
 }
 
 nor_err_e NOR_IsEmptyBlock(nor_t *nor, uint32_t BlockAddr, uint32_t Offset, uint32_t NumBytesToCheck){
-	uint8_t pBuffer[NOR_EMPTY_CHECK_BUFFER_LEN];
 	uint32_t ActAddress;
 
 	_SANITY_CHECK(nor);
