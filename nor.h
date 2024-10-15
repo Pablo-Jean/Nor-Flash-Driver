@@ -83,6 +83,7 @@ typedef void (*SpiRx_fxn_t)(uint8_t* RxBuff, uint32_t len);
 typedef void (*CS_Assert_fnx_t)(void);
 typedef void (*CS_Deassert_fxn_t)(void);
 typedef void (*delay_us_fxn_t)(uint32_t us);
+typedef void (*mutex_fxn_t)(void);
 
 /**
  * Structs
@@ -96,6 +97,8 @@ typedef struct{
 		CS_Assert_fnx_t CsAssert;
 		CS_Deassert_fxn_t CsDeassert;
 		delay_us_fxn_t DelayUs;
+		mutex_fxn_t MutexLockFxn;
+		mutex_fxn_t MutexUnlockFxn;
 	}config;
 	struct{
 		uint64_t u64UniqueId;

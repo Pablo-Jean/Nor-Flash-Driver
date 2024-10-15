@@ -71,6 +71,18 @@ static void _nor_delay_us(nor_t *nor, uint32_t us){
 	nor->config.DelayUs(us);
 }
 
+static void _nor_mtx_lock(nor_t *nor){
+	if (nor->config.MutexLockFxn != NULL){
+		nor->config.MutexLockFxn();
+	}
+}
+
+static void _nor_mtx_unlock(nor_t *nor){
+	if (nor->config.MutexUnlockFxn != NULL){
+		nor->config.MutexUnlockFxn();
+	}
+}
+
 static uint32_t _nor_ReadID(nor_t *nor)
 {
 	uint8_t JedecIdCmd = NOR_JEDEC_ID;
@@ -346,9 +358,11 @@ nor_err_e NOR_ExitPowerDown(nor_t *nor){
 		nor->_internal.u8PdCount--;
 		if (nor->_internal.u8PdCount == 0){
 			NOR_PRINTF("NOR Exiting Deep Power Down\n");
+			_nor_mtx_lock(nor);
 			_nor_cs_assert(nor);
 			_nor_spi_tx(nor, &ExitPDCmd, sizeof(ExitPDCmd));
 			_nor_cs_deassert(nor);
+			_nor_mtx_unlock(nor);
 			nor->pdState = NOR_IN_IDLE;
 		}
 	}
@@ -362,9 +376,11 @@ nor_err_e NOR_EnterPowerDown(nor_t *nor){
 
 	if (nor->_internal.u8PdCount == 0){
 		NOR_PRINTF("NOR Enter in Deep Power Down\n");
+		_nor_mtx_lock(nor);
 		_nor_cs_assert(nor);
 		_nor_spi_tx(nor, &DeepPDCmd, sizeof(DeepPDCmd));
 		_nor_cs_deassert(nor);
+		_nor_mtx_unlock(nor);
 		nor->pdState = NOR_DEEP_POWER_DOWN;
 	}
 	nor->_internal.u8PdCount++;
@@ -379,11 +395,13 @@ nor_err_e NOR_EraseChip(nor_t *nor){
 	_SANITY_CHECK(nor);
 
 	NOR_PRINTF("Starting Mass Erase\nWait ...\n");
+	_nor_mtx_lock(nor);
 	_nor_WriteEnable(nor);
 	_nor_cs_assert(nor);
 	_nor_spi_tx(nor, &EraseChipCmd, sizeof(EraseChipCmd));
 	_nor_cs_deassert(nor);
 	err = _nor_WaitForWriteEnd(nor, NOR_EXPECT_ERASE_CHIP);
+	_nor_mtx_unlock(nor);
 	if (err != NOR_OK){
 		NOR_PRINTF("ERROR: Failed to erase flash\n");
 	}
@@ -419,11 +437,13 @@ nor_err_e NOR_EraseAddress(nor_t *nor, uint32_t Address, nor_erase_method_e meth
 	EraseChipCmd[2] = ((Address >> 8) & 0xFF);
 	EraseChipCmd[3] = ((Address) & 0xFF);
 
+	_nor_mtx_lock(nor);
 	_nor_WriteEnable(nor);
 	_nor_cs_assert(nor);
 	_nor_spi_tx(nor, EraseChipCmd, sizeof(EraseChipCmd));
 	_nor_cs_deassert(nor);
 	err = _nor_WaitForWriteEnd(nor, expectedTimeoutUs);
+	_nor_mtx_unlock(nor);
 	if (err != NOR_OK){
 		NOR_PRINTF("ERROR: Failed to erase flash\n");
 	}
@@ -550,6 +570,7 @@ nor_err_e NOR_WriteBytes(nor_t *nor, uint8_t *pBuffer, uint32_t WriteAddr, uint3
 		NOR_PRINTF("%02X ", pBuffer[i]);
 	}
 	NOR_PRINTF("\n=============================================================\n");
+	_nor_mtx_lock(nor);
 	do{
 		if (((WriteAddr%nor->info.u16PageSize)+NumBytesToWrite) > nor->info.u16PageSize){
 			_BytesToWrite = nor->info.u16PageSize;
@@ -570,6 +591,7 @@ nor_err_e NOR_WriteBytes(nor_t *nor, uint8_t *pBuffer, uint32_t WriteAddr, uint3
 		pBuffer += _BytesToWrite;
 		NumBytesToWrite -= _BytesToWrite;
 	}while (NumBytesToWrite > 0);
+	_nor_mtx_unlock(nor);
 	NOR_PRINTF("Write done.!\n");
 
 	return NOR_OK;
@@ -620,8 +642,8 @@ nor_err_e NOR_WriteBlock(nor_t *nor, uint8_t *pBuffer, uint32_t BlockAddr, uint3
 
 nor_err_e NOR_ReadBytes(nor_t *nor, uint8_t *pBuffer, uint32_t ReadAddr, uint32_t NumByteToRead){
 	uint8_t ReadCmd[5];
-	uint32_t _BytesToRead;
-	uint8_t *originalBuffer;
+//	uint32_t _BytesToRead;
+//	uint8_t *originalBuffer;
 	uint32_t originalNumBytes;
 
 	_SANITY_CHECK(nor);
@@ -631,9 +653,10 @@ nor_err_e NOR_ReadBytes(nor_t *nor, uint8_t *pBuffer, uint32_t ReadAddr, uint32_
 	}
 	// TODO check if Address is not grater than the Flash size
 
-	originalBuffer = pBuffer;
-	originalNumBytes = NumByteToRead;
 	NOR_PRINTF("Reading %d bytes on the Address %08X.\n", (uint)NumByteToRead, (uint)ReadAddr);
+	_nor_mtx_lock(nor);
+	originalNumBytes = NumByteToRead;
+	/*originalBuffer = pBuffer;
 	do{
 		if (((ReadAddr%nor->info.u16PageSize)+NumByteToRead) > nor->info.u16PageSize){
 			_BytesToRead = nor->info.u16PageSize;
@@ -652,8 +675,19 @@ nor_err_e NOR_ReadBytes(nor_t *nor, uint8_t *pBuffer, uint32_t ReadAddr, uint32_
 		_nor_cs_deassert(nor);
 		pBuffer += _BytesToRead;
 		NumByteToRead -= _BytesToRead;
-	}while(NumByteToRead > 0);
+	}while(NumByteToRead > 0);*/
 
+	ReadCmd[0] = NOR_READ_FAST_DATA;
+	ReadCmd[1] = ((ReadAddr >> 16) & 0xFF);
+	ReadCmd[2] = ((ReadAddr >> 8) & 0xFF);
+	ReadCmd[3] = ((ReadAddr) & 0xFF);
+	ReadCmd[4] = 0x00;
+	_nor_cs_assert(nor);
+	_nor_spi_tx(nor, ReadCmd, sizeof(ReadCmd));
+	_nor_spi_rx(nor, pBuffer, NumByteToRead);
+	_nor_cs_deassert(nor);
+
+	_nor_mtx_unlock(nor);
 	NOR_PRINTF("Buffer readed from NOR:\n");
 	NOR_PRINTF("====================== Values in HEX ========================");
 	for (uint32_t i = 0; i < originalNumBytes; i++)
