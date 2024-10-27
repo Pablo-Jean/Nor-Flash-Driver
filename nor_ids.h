@@ -19,7 +19,8 @@ typedef enum{
 	MANUF_ADESTO = 0x1F,
 	MANUF_WINBOND = 0xEF,
 	MANUF_PUYA = 0x85,
-	MANUF_MICROCHIP = 0xBF
+	MANUF_MICROCHIP = 0xBF,
+	MANUF_XMC = 0x20
 }nor_manuf_e;
 
 typedef enum{
@@ -47,6 +48,7 @@ typedef enum{
 	W25x64xx = 0x1740,
 	W25x128xx = 0x1840,
 	W25x256xx = 0x1940,
+
 
 	/* Puya Codes */
 	// TODO write the Puya Codes

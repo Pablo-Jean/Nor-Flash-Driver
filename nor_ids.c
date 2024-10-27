@@ -23,7 +23,9 @@ nor_model_e NOR_IDS_Interpret_Model (uint32_t JedecID){
 	case 	MANUF_MXIC:
 		return ((JedecID >> 16) & 0xFF);
 		break;
+	// XMC and Winbond has the same code
 	case	MANUF_WINBOND:
+	case	MANUF_XMC:
 		return ((JedecID >> 8) & 0xFFFF);
 		break;
 	}

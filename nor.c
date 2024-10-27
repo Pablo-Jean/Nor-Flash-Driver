@@ -17,20 +17,9 @@
  */
 
 #if defined (NOR_DEBUG)
-// TODO The printf :)
 #define NOR_PRINTF(...)			printf(__VA_ARGS__)
 #else
 #define NOR_PRINTF(...)
-#endif
-
-/* If you are in a RTOS Environment, and has more devices into the */
-/* Spi Bus, please, implement a threadsafe method (semaphores) */
-#if defined (NOR_THREADSAFE)
-#define _NOR_LOCK()		// TODO Lock function
-#define _NOR_UNLOCK()	// TODO Unlock function
-#else
-#define _NOR_LOCK()
-#define _NOR_UNLOCK()
 #endif
 
 #ifndef NOR_EMPTY_CHECK_BUFFER_LEN
