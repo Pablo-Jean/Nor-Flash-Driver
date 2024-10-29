@@ -177,7 +177,7 @@ void _nor_WriteStatusRegister(nor_t *nor, enum _nor_sr_select_e SelectSR, uint8_
 	_nor_cs_deassert(nor);
 }
 
-nor_err_e _nor_WaitForWriteEnd(nor_t *nor, uint32_t msTimeout)
+nor_err_e _nor_WaitForBusy(nor_t *nor, uint32_t msTimeout)
 {
 	uint8_t ReadSr1Cmd = NOR_READ_SR1;
 
@@ -389,7 +389,7 @@ nor_err_e NOR_EraseChip(nor_t *nor){
 	_nor_cs_assert(nor);
 	_nor_spi_tx(nor, &EraseChipCmd, sizeof(EraseChipCmd));
 	_nor_cs_deassert(nor);
-	err = _nor_WaitForWriteEnd(nor, NOR_EXPECT_ERASE_CHIP);
+	err = _nor_WaitForBusy(nor, NOR_EXPECT_ERASE_CHIP);
 	_nor_mtx_unlock(nor);
 	if (err != NOR_OK){
 		NOR_PRINTF("ERROR: Failed to erase flash\n\r");
@@ -431,7 +431,7 @@ nor_err_e NOR_EraseAddress(nor_t *nor, uint32_t Address, nor_erase_method_e meth
 	_nor_cs_assert(nor);
 	_nor_spi_tx(nor, EraseChipCmd, sizeof(EraseChipCmd));
 	_nor_cs_deassert(nor);
-	err = _nor_WaitForWriteEnd(nor, expectedTimeoutUs);
+	err = _nor_WaitForBusy(nor, expectedTimeoutUs);
 	_nor_mtx_unlock(nor);
 	if (err != NOR_OK){
 		NOR_PRINTF("ERROR: Failed to erase flash\n\r");
@@ -576,7 +576,7 @@ nor_err_e NOR_WriteBytes(nor_t *nor, uint8_t *pBuffer, uint32_t WriteAddr, uint3
 		_nor_spi_tx(nor, WriteCmd, sizeof(WriteCmd));
 		_nor_spi_tx(nor, pBuffer, _BytesToWrite);
 		_nor_cs_deassert(nor);
-		_nor_WaitForWriteEnd(nor, NOR_EXPECT_PAGE_PROG_TIME);
+		_nor_WaitForBusy(nor, NOR_EXPECT_PAGE_PROG_TIME);
 		pBuffer += _BytesToWrite;
 		NumBytesToWrite -= _BytesToWrite;
 	}while (NumBytesToWrite > 0);
@@ -665,7 +665,7 @@ nor_err_e NOR_ReadBytes(nor_t *nor, uint8_t *pBuffer, uint32_t ReadAddr, uint32_
 		pBuffer += _BytesToRead;
 		NumByteToRead -= _BytesToRead;
 	}while(NumByteToRead > 0);*/
-
+	_nor_WaitForBusy(nor, NOR_EXPECT_PAGE_PROG_TIME);
 	ReadCmd[0] = NOR_READ_FAST_DATA;
 	ReadCmd[1] = ((ReadAddr >> 16) & 0xFF);
 	ReadCmd[2] = ((ReadAddr >> 8) & 0xFF);
