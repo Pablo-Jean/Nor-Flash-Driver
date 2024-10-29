@@ -220,12 +220,12 @@ nor_err_e NOR_Init(nor_t *nor){
 	if (nor == NULL || nor->config.CsAssert == NULL ||
 			nor->config.CsDeassert == NULL || nor->config.DelayUs == NULL ||
 			nor->config.SpiRxFxn == NULL || nor->config.SpiTxFxn == NULL){
-		NOR_PRINTF("ERROR: Invalid Parameters on %s function\n", __func__);
+		NOR_PRINTF("ERROR: Invalid Parameters on %s function\n\r", __func__);
 		return NOR_INVALID_PARAMS;
 	}
 	if (nor->_internal.u16Initialized == NOR_INITIALIZED_FLAG){
 		// the flash instance is already initialized
-		NOR_PRINTF("Warning: Flash is already initialized.\n");
+		NOR_PRINTF("Warning: Flash is already initialized.\n\r");
 		return NOR_OK;
 	}
 	// we must have sure that the NOR has your CS pin deasserted
@@ -242,14 +242,14 @@ nor_err_e NOR_Init(nor_t *nor){
 	nor->info.u32JedecID = _nor_ReadID(nor);
 	if (nor->info.u32JedecID == 0x000000 || nor->info.u32JedecID == 0xFFFFFF){
 		// invalid Id, I thing we don't has any flash on SPI
-		NOR_PRINTF("ERROR: Flash memory bus fault.\n");
+		NOR_PRINTF("ERROR: Flash memory bus fault.\n\r");
 		return NOR_NO_MEMORY_FOUND;
 	}
 	nor->Manufacturer = NOR_IDS_Interpret_Manufacturer(nor->info.u32JedecID);
 	nor->Model = NOR_IDS_Interpret_Model(nor->info.u32JedecID);
 	if (nor->Model == NOR_MODEL_UNKNOWN){
-		NOR_PRINTF("ERROR: The flash memory model wasn't reconignized.\n"
-				"You can, yet, start with NOR_Init_wo_ID to ignore the Flash ID.");
+		NOR_PRINTF("ERROR: The flash memory model wasn't reconignized.\n\r"
+				"You can, yet, start with NOR_Init_wo_ID to ignore the Flash ID.\n\r");
 		return NOR_UNKNOWN_DEVICE;
 	}
 
@@ -268,17 +268,17 @@ nor_err_e NOR_Init(nor_t *nor){
 	_nor_ReadStatusRegister(nor, _SELECT_SR3);
 
 	nor->_internal.u16Initialized = NOR_INITIALIZED_FLAG;
-	NOR_PRINTF("== Memory Flash NOR Information ==\n");
-	NOR_PRINTF(" JEDEC ID     | 0x%06X\n", (uint)nor->info.u32JedecID);
-	NOR_PRINTF(" Unique ID    | 0x%lluX\n", (nor->info.u64UniqueId));
-	NOR_PRINTF(" Page Size    | %d Bytes\n", nor->info.u16PageSize);
-	NOR_PRINTF(" Sector Size  | %d Bytes\n", (uint)nor->info.u16SectorSize);
-	NOR_PRINTF(" Block Size   | %d Bytes\n", (uint)nor->info.u32BlockSize);
-	NOR_PRINTF(" Page Count   | %d Pages\n", (uint)nor->info.u32PageCount);
-	NOR_PRINTF(" Sector Count | %d Sectors\n", (uint)nor->info.u32SectorCount);
-	NOR_PRINTF(" Block Count  | %d Blocks\n", (uint)nor->info.u32BlockCount);
-	NOR_PRINTF(" Capacity     | %d KB\n", (uint)(nor->info.u32Size/1024));
-	NOR_PRINTF(" == NOR Initialization Done ==\n");
+	NOR_PRINTF("== Memory Flash NOR Information ==\n\r");
+	NOR_PRINTF(" JEDEC ID     | 0x%06X\n\r", (uint)nor->info.u32JedecID);
+	NOR_PRINTF(" Unique ID    | 0x%lluX\n\r", (nor->info.u64UniqueId));
+	NOR_PRINTF(" Page Size    | %d Bytes\n\r", nor->info.u16PageSize);
+	NOR_PRINTF(" Sector Size  | %d Bytes\n\r", (uint)nor->info.u16SectorSize);
+	NOR_PRINTF(" Block Size   | %d Bytes\n\r", (uint)nor->info.u32BlockSize);
+	NOR_PRINTF(" Page Count   | %d Pages\n\r", (uint)nor->info.u32PageCount);
+	NOR_PRINTF(" Sector Count | %d Sectors\n\r", (uint)nor->info.u32SectorCount);
+	NOR_PRINTF(" Block Count  | %d Blocks\n\r", (uint)nor->info.u32BlockCount);
+	NOR_PRINTF(" Capacity     | %d KB\n\r", (uint)(nor->info.u32Size/1024));
+	NOR_PRINTF(" == NOR Initialization Done ==\n\r");
 
 	return NOR_OK;
 }
@@ -323,17 +323,17 @@ nor_err_e NOR_Init_wo_ID(nor_t *nor){
 	_nor_ReadStatusRegister(nor, _SELECT_SR3);
 
 	nor->_internal.u16Initialized = NOR_INITIALIZED_FLAG;
-	NOR_PRINTF("== Memory Flash NOR Information ==\n");
-	NOR_PRINTF(" JEDEC ID     | 0x%06X\n", (uint)nor->info.u32JedecID);
-	NOR_PRINTF(" Unique ID    | 0x%lluX\n", (nor->info.u64UniqueId));
-	NOR_PRINTF(" Page Size    | %d Bytes\n", nor->info.u16PageSize);
-	NOR_PRINTF(" Sector Size  | %d Bytes\n", (uint)nor->info.u16SectorSize);
-	NOR_PRINTF(" Block Size   | %d Bytes\n", (uint)nor->info.u32BlockSize);
-	NOR_PRINTF(" Page Count   | %d Pages\n", (uint)nor->info.u32PageCount);
-	NOR_PRINTF(" Sector Count | %d Sectors\n", (uint)nor->info.u32SectorCount);
-	NOR_PRINTF(" Block Count  | %d Blocks\n", (uint)nor->info.u32BlockCount);
-	NOR_PRINTF(" Capacity     | %d KB\n", (uint)(nor->info.u32Size/1024));
-	NOR_PRINTF(" == NOR Initialization Done ==\n");
+	NOR_PRINTF("== Memory Flash NOR Information ==\n\r");
+	NOR_PRINTF(" JEDEC ID     | 0x%06X\n\r", (uint)nor->info.u32JedecID);
+	NOR_PRINTF(" Unique ID    | 0x%lluX\n\r", (nor->info.u64UniqueId));
+	NOR_PRINTF(" Page Size    | %d Bytes\n\r", nor->info.u16PageSize);
+	NOR_PRINTF(" Sector Size  | %d Bytes\n\r", (uint)nor->info.u16SectorSize);
+	NOR_PRINTF(" Block Size   | %d Bytes\n\r", (uint)nor->info.u32BlockSize);
+	NOR_PRINTF(" Page Count   | %d Pages\n\r", (uint)nor->info.u32PageCount);
+	NOR_PRINTF(" Sector Count | %d Sectors\n\r", (uint)nor->info.u32SectorCount);
+	NOR_PRINTF(" Block Count  | %d Blocks\n\r", (uint)nor->info.u32BlockCount);
+	NOR_PRINTF(" Capacity     | %d KB\n\r", (uint)(nor->info.u32Size/1024));
+	NOR_PRINTF(" == NOR Initialization Done ==\n\r");
 
 	return NOR_OK;
 }
@@ -346,7 +346,7 @@ nor_err_e NOR_ExitPowerDown(nor_t *nor){
 	if (nor->_internal.u8PdCount > 0){
 		nor->_internal.u8PdCount--;
 		if (nor->_internal.u8PdCount == 0){
-			NOR_PRINTF("NOR Exiting Deep Power Down\n");
+			NOR_PRINTF("NOR Exiting Deep Power Down\n\r");
 			_nor_mtx_lock(nor);
 			_nor_cs_assert(nor);
 			_nor_spi_tx(nor, &ExitPDCmd, sizeof(ExitPDCmd));
@@ -364,7 +364,7 @@ nor_err_e NOR_EnterPowerDown(nor_t *nor){
 	_SANITY_CHECK(nor);
 
 	if (nor->_internal.u8PdCount == 0){
-		NOR_PRINTF("NOR Enter in Deep Power Down\n");
+		NOR_PRINTF("NOR Enter in Deep Power Down\n\r");
 		_nor_mtx_lock(nor);
 		_nor_cs_assert(nor);
 		_nor_spi_tx(nor, &DeepPDCmd, sizeof(DeepPDCmd));
@@ -383,7 +383,7 @@ nor_err_e NOR_EraseChip(nor_t *nor){
 
 	_SANITY_CHECK(nor);
 
-	NOR_PRINTF("Starting Mass Erase\nWait ...\n");
+	NOR_PRINTF("Starting Mass Erase\nWait ...\n\r");
 	_nor_mtx_lock(nor);
 	_nor_WriteEnable(nor);
 	_nor_cs_assert(nor);
@@ -392,9 +392,9 @@ nor_err_e NOR_EraseChip(nor_t *nor){
 	err = _nor_WaitForWriteEnd(nor, NOR_EXPECT_ERASE_CHIP);
 	_nor_mtx_unlock(nor);
 	if (err != NOR_OK){
-		NOR_PRINTF("ERROR: Failed to erase flash\n");
+		NOR_PRINTF("ERROR: Failed to erase flash\n\r");
 	}
-	NOR_PRINTF("Done!\n");
+	NOR_PRINTF("Done!\n\r");
 	return err;
 }
 
@@ -407,17 +407,17 @@ nor_err_e NOR_EraseAddress(nor_t *nor, uint32_t Address, nor_erase_method_e meth
 
 	switch (method){
 	case NOR_ERASE_4K:
-		NOR_PRINTF("Erasing 4K bytes on 0x%08X Address\n", (uint)Address);
+		NOR_PRINTF("Erasing 4K bytes on 0x%08X Address\n\r", (uint)Address);
 		EraseChipCmd[0] = NOR_SECTOR_ERASE_4K;
 		expectedTimeoutUs = NOR_EXPECT_4K_ERASE_TIME;
 		break;
 	case NOR_ERASE_32K:
-		NOR_PRINTF("Erasing 32K bytes on 0x%08X Address\n", (uint)Address);
+		NOR_PRINTF("Erasing 32K bytes on 0x%08X Address\n\r", (uint)Address);
 		EraseChipCmd[0] = NOR_SECTOR_ERASE_32K;
 		expectedTimeoutUs = NOR_EXPECT_32K_ERASE_TIME;
 		break;
 	case NOR_ERASE_64K:
-		NOR_PRINTF("Erasing 64K bytes on 0x%08X Address\n", (uint)Address);
+		NOR_PRINTF("Erasing 64K bytes on 0x%08X Address\n\r", (uint)Address);
 		EraseChipCmd[0] = NOR_SECTOR_ERASE_64K;
 		expectedTimeoutUs = NOR_EXPECT_64K_ERASE_TIME;
 		break;
@@ -434,9 +434,9 @@ nor_err_e NOR_EraseAddress(nor_t *nor, uint32_t Address, nor_erase_method_e meth
 	err = _nor_WaitForWriteEnd(nor, expectedTimeoutUs);
 	_nor_mtx_unlock(nor);
 	if (err != NOR_OK){
-		NOR_PRINTF("ERROR: Failed to erase flash\n");
+		NOR_PRINTF("ERROR: Failed to erase flash\n\r");
 	}
-	NOR_PRINTF("Done!\n");
+	NOR_PRINTF("Done!\n\r");
 
 	return err;
 }
@@ -489,7 +489,7 @@ nor_err_e NOR_IsEmptyAddress(nor_t *nor, uint32_t Address, uint32_t NumBytesToCh
 
 	_SANITY_CHECK(nor);
 
-	NOR_PRINTF("Checking if %d bytes of Address 0x%08X are empty.\n", (uint)NumBytesToCheck, (uint)Address);
+	NOR_PRINTF("Checking if %d bytes of Address 0x%08X are empty.\n\r", (uint)NumBytesToCheck, (uint)Address);
 	while (NumBytesToCheck > 0){
 		NOR_ReadBytes(nor, pBuffer, Address, NOR_EMPTY_CHECK_BUFFER_LEN);
 		Address += NOR_EMPTY_CHECK_BUFFER_LEN;
@@ -500,11 +500,11 @@ nor_err_e NOR_IsEmptyAddress(nor_t *nor, uint32_t Address, uint32_t NumBytesToCh
 			NumBytesToCheck = 0;
 		}
 		if (_nor_check_buff_is_empty(pBuffer, NOR_EMPTY_CHECK_BUFFER_LEN) == NOR_REGIONS_IS_NOT_EMPTY){
-			NOR_PRINTF("Warning: Region is NOT empty.\n");
+			NOR_PRINTF("Warning: Region is NOT empty.\n\r");
 			return NOR_REGIONS_IS_NOT_EMPTY;
 		}
 	}
-	NOR_PRINTF("Region is empty.\n");
+	NOR_PRINTF("Region is empty.\n\r");
 	return NOR_OK;
 }
 
@@ -542,12 +542,12 @@ nor_err_e NOR_WriteBytes(nor_t *nor, uint8_t *pBuffer, uint32_t WriteAddr, uint3
 	_SANITY_CHECK(nor);
 
 	if (NumBytesToWrite == 0){
-		NOR_PRINTF("ERROR: Invalid parameters on NOR_WriteBytes\n");
+		NOR_PRINTF("ERROR: Invalid parameters on NOR_WriteBytes\n\r");
 		return NOR_INVALID_PARAMS;
 	}
 	// TODO check if Address is not grater than the Flash size
-	NOR_PRINTF("Writing %d bytes into Address %08X.\n", (uint)NumBytesToWrite, (uint)WriteAddr);
-	NOR_PRINTF("Buffer to Write into Flash:\n");
+	NOR_PRINTF("Writing %d bytes into Address %08X.\n\r", (uint)NumBytesToWrite, (uint)WriteAddr);
+	NOR_PRINTF("Buffer to Write into Flash:\n\r");
 	NOR_PRINTF("====================== Values in HEX ========================");
 	for (uint32_t i = 0; i < NumBytesToWrite; i++)
 	{
@@ -558,7 +558,7 @@ nor_err_e NOR_WriteBytes(nor_t *nor, uint8_t *pBuffer, uint32_t WriteAddr, uint3
 		}
 		NOR_PRINTF("%02X ", pBuffer[i]);
 	}
-	NOR_PRINTF("\n=============================================================\n");
+	NOR_PRINTF("\n\r=============================================================\n\r");
 	_nor_mtx_lock(nor);
 	do{
 		if (((WriteAddr%nor->info.u16PageSize)+NumBytesToWrite) > nor->info.u16PageSize){
@@ -581,7 +581,7 @@ nor_err_e NOR_WriteBytes(nor_t *nor, uint8_t *pBuffer, uint32_t WriteAddr, uint3
 		NumBytesToWrite -= _BytesToWrite;
 	}while (NumBytesToWrite > 0);
 	_nor_mtx_unlock(nor);
-	NOR_PRINTF("Write done.!\n");
+	NOR_PRINTF("Write done.!\n\r");
 
 	return NOR_OK;
 }
@@ -642,7 +642,7 @@ nor_err_e NOR_ReadBytes(nor_t *nor, uint8_t *pBuffer, uint32_t ReadAddr, uint32_
 	}
 	// TODO check if Address is not grater than the Flash size
 
-	NOR_PRINTF("Reading %d bytes on the Address %08X.\n", (uint)NumByteToRead, (uint)ReadAddr);
+	NOR_PRINTF("Reading %d bytes on the Address %08X.\n\r", (uint)NumByteToRead, (uint)ReadAddr);
 	_nor_mtx_lock(nor);
 	originalNumBytes = NumByteToRead;
 	/*originalBuffer = pBuffer;
@@ -677,7 +677,7 @@ nor_err_e NOR_ReadBytes(nor_t *nor, uint8_t *pBuffer, uint32_t ReadAddr, uint32_
 	_nor_cs_deassert(nor);
 
 	_nor_mtx_unlock(nor);
-	NOR_PRINTF("Buffer readed from NOR:\n");
+	NOR_PRINTF("Buffer readed from NOR:\n\r");
 	NOR_PRINTF("====================== Values in HEX ========================");
 	for (uint32_t i = 0; i < originalNumBytes; i++)
 	{
@@ -686,10 +686,10 @@ nor_err_e NOR_ReadBytes(nor_t *nor, uint8_t *pBuffer, uint32_t ReadAddr, uint32_
 			NOR_PRINTF("\r\n");
 			NOR_PRINTF("0x%08X | ", (uint)(ReadAddr + i));
 		}
-		NOR_PRINTF("%02X ", originalBuffer[i]);
+		NOR_PRINTF("%02X ", pBuffer[i]);
 	}
-	NOR_PRINTF("\n=============================================================\n");
-	NOR_PRINTF("w25qxx ReadBytes done.\n");
+	NOR_PRINTF("\n\r=============================================================\n\r");
+	NOR_PRINTF("w25qxx ReadBytes done.\n\r");
 
 	return NOR_OK;
 }

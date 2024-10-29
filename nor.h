@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <sys/types.h>
 
 #include "nor_defines.h"
 #include "nor_ids.h"
