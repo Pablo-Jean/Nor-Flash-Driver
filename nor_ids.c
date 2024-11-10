@@ -42,6 +42,7 @@ uint32_t NOR_IDS_GetQtdBlocks(uint32_t JedecID){
 	default:
 		blocks = 0;
 		break;
+	case 	MANUF_XMC:
 	case	MANUF_PUYA:
 	case 	MANUF_MXIC:
 	case	MANUF_WINBOND:
