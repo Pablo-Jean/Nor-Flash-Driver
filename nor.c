@@ -446,6 +446,7 @@ nor_err_e NOR_EraseAddress(nor_t *nor, uint32_t Address, nor_erase_method_e meth
 	_nor_spi_tx(nor, EraseChipCmd, sizeof(EraseChipCmd));
 	_nor_cs_deassert(nor);
 	err = _nor_WaitForBusy(nor, expectedTimeoutUs, &remaining);
+	_nor_delay_us(nor, 100000);
 	_nor_mtx_unlock(nor);
 	if (err != NOR_OK){
 		NOR_PRINTF("FAILED!\n\r");
@@ -602,6 +603,11 @@ nor_err_e NOR_WriteBytes(nor_t *nor, uint8_t *pBuffer, uint32_t WriteAddr, uint3
 		WriteAddr += _BytesToWrite;
 		NumBytesToWrite -= _BytesToWrite;
 	}while (NumBytesToWrite > 0);
+	// release the routine only when the data is writted
+	if (_nor_WaitForBusy(nor, NOR_EXPECT_PAGE_PROG_TIME, NULL) != NOR_OK){
+		NOR_PRINTF("Write failed.!\n\r\n\r");
+		return NOR_FAIL;
+	}
 	_nor_mtx_unlock(nor);
 	NOR_PRINTF("Write done.!\n\r\n\r");
 
@@ -675,8 +681,8 @@ nor_err_e NOR_ReadBytes(nor_t *nor, uint8_t *pBuffer, uint32_t ReadAddr, uint32_
 	_nor_spi_tx(nor, ReadCmd, sizeof(ReadCmd));
 	Readed = 0;
 	while (Readed < NumByteToRead){
-		if ((NumByteToRead - Readed) > 16){
-			toRead = 16;
+		if ((NumByteToRead - Readed) > 256){
+			toRead = 256;
 		}
 		else{
 			toRead = (NumByteToRead - Readed);
