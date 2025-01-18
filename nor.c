@@ -679,17 +679,18 @@ nor_err_e NOR_ReadBytes(nor_t *nor, uint8_t *pBuffer, uint32_t ReadAddr, uint32_
 	ReadCmd[4] = 0x00;
 	_nor_cs_assert(nor);
 	_nor_spi_tx(nor, ReadCmd, sizeof(ReadCmd));
-	Readed = 0;
-	while (Readed < NumByteToRead){
-		if ((NumByteToRead - Readed) > 256){
-			toRead = 256;
-		}
-		else{
-			toRead = (NumByteToRead - Readed);
-		}
-		_nor_spi_rx(nor, (pBuffer + Readed), toRead);
-		Readed += toRead;
-	}
+	_nor_spi_rx(nor, pBuffer, NumByteToRead);
+//	Readed = 0;
+//	while (Readed < NumByteToRead){
+//		if ((NumByteToRead - Readed) > 64){
+//			toRead = 64;
+//		}
+//		else{
+//			toRead = (NumByteToRead - Readed);
+//		}
+//		_nor_spi_rx(nor, (pBuffer + Readed), toRead);
+//		Readed += toRead;
+//	}
 	_nor_cs_deassert(nor);
 
 	_nor_mtx_unlock(nor);
