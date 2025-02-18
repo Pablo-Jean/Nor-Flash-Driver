@@ -414,7 +414,7 @@ nor_err_e NOR_EraseChip(nor_t *nor){
 
 nor_err_e NOR_EraseAddress(nor_t *nor, uint32_t Address, nor_erase_method_e method){
 	uint8_t EraseChipCmd[4];
-	uint32_t expectedTimeoutUs, remaining;
+	uint32_t expectedTimeoutMs, remaining;
 	nor_err_e err;
 
 	_SANITY_CHECK(nor);
@@ -423,17 +423,17 @@ nor_err_e NOR_EraseAddress(nor_t *nor, uint32_t Address, nor_erase_method_e meth
 	case NOR_ERASE_4K:
 		NOR_PRINTF("Erasing 4 KBytes on 0x%08X Address... ", (uint)Address);
 		EraseChipCmd[0] = NOR_SECTOR_ERASE_4K;
-		expectedTimeoutUs = NOR_EXPECT_4K_ERASE_TIME;
+		expectedTimeoutMs = NOR_EXPECT_4K_ERASE_TIME;
 		break;
 	case NOR_ERASE_32K:
 		NOR_PRINTF("Erasing 32 KBytes on 0x%08X Address... ", (uint)Address);
 		EraseChipCmd[0] = NOR_SECTOR_ERASE_32K;
-		expectedTimeoutUs = NOR_EXPECT_32K_ERASE_TIME;
+		expectedTimeoutMs = NOR_EXPECT_32K_ERASE_TIME;
 		break;
 	case NOR_ERASE_64K:
 		NOR_PRINTF("Erasing 64 KBytes on 0x%08X Address... ", (uint)Address);
 		EraseChipCmd[0] = NOR_SECTOR_ERASE_64K;
-		expectedTimeoutUs = NOR_EXPECT_64K_ERASE_TIME;
+		expectedTimeoutMs = NOR_EXPECT_64K_ERASE_TIME;
 		break;
 	}
 	EraseChipCmd[1] = ((Address >> 16) & 0xFF);
@@ -445,7 +445,7 @@ nor_err_e NOR_EraseAddress(nor_t *nor, uint32_t Address, nor_erase_method_e meth
 	_nor_cs_assert(nor);
 	_nor_spi_tx(nor, EraseChipCmd, sizeof(EraseChipCmd));
 	_nor_cs_deassert(nor);
-	err = _nor_WaitForBusy(nor, expectedTimeoutUs, &remaining);
+	err = _nor_WaitForBusy(nor, expectedTimeoutMs, &remaining);
 	_nor_delay_us(nor, 100000);
 	_nor_mtx_unlock(nor);
 	if (err != NOR_OK){
